@@ -1,9 +1,17 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"math"
 	"testing"
 )
+
+type Point struct {
+	X     float64 `json:"x"`
+	Y     float64 `json:"y"`
+	Class int     `json:"class"`
+}
 
 func TestConnectTwoNeurons(t *testing.T) {
 	neuron1 := NewNeuron(math.Tanh)
@@ -42,6 +50,38 @@ func TestFireConnectedNeurons(t *testing.T) {
 
 	if neuron4.Out < 0.9 {
 		t.Errorf("Out not correct, was %f", neuron4.Out)
+	}
+
+}
+
+func TestTrainNetwork(t *testing.T) {
+
+	testData, err := ioutil.ReadFile("training_data.json")
+	if err != nil {
+		t.Errorf("Error getting test data: %v", err)
+	}
+	points := make([]Point, 0)
+	json.Unmarshal(testData, &points)
+
+	input1 := NewNeuron(math.Tanh)
+	input2 := NewNeuron(math.Tanh)
+
+	hiddenLayer := []*Neuron{
+		NewNeuron(math.Tanh),
+		NewNeuron(math.Tanh),
+		NewNeuron(math.Tanh),
+		NewNeuron(math.Tanh),
+	}
+
+	output1 := NewNeuron(math.Tanh)
+	output2 := NewNeuron(math.Tanh)
+
+	// Connect our layers
+	for _, hl := range hiddenLayer {
+		input1.Connect(hl, 1)
+		input2.Connect(hl, 1)
+		hl.Connect(output1, 0.5)
+		hl.Connect(output2, 0.5)
 	}
 
 }
